@@ -9,6 +9,14 @@
             "cwd": "${workspaceFolder}/lesson-005/mp-release-fa25/mp0",  // 相当于先 cd 到这个目录
         },
         {
+            "name": "Debug a star",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "examples/lesson1_demo.py",   // 你想运行的文件，相对路径即可
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/project/path_planning_course",  // 相当于先 cd 到这个目录
+        },
+        {
             "name": "hello",
             "type": "cppdbg",
             "request": "launch",

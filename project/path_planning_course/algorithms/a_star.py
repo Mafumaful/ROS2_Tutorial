@@ -13,8 +13,6 @@
 3. Closed Set: 已访问过的节点集合
 4. 启发式函数: 用欧几里得距离或曼哈顿距离估计剩余代价
 
-作者: Path Planning Course Team
-日期: 2024
 """
 
 import heapq
@@ -214,24 +212,25 @@ class AStar:
         
         return path
     
-    def plan(self, verbose: bool = True) -> Optional[List[Tuple[int, int]]]:
+    def plan(self, verbose: bool = True, record_steps: bool = False) -> Optional[List[Tuple[int, int]]]:
         """
         执行A*路径规划
-        
+
         这是算法的主要函数，实现了A*搜索的核心逻辑:
         1. 初始化Open List和Closed Set
         2. 循环取出f值最小的节点
         3. 检查是否到达目标
         4. 扩展邻居节点
         5. 更新节点代价
-        
+
         Args:
             verbose: 是否打印详细信息
-        
+            record_steps: 是否记录每一步的执行状态（用于可视化调试）
+
         Returns:
             如果找到路径，返回坐标列表 [(x1,y1), (x2,y2), ...]
             如果没找到路径，返回 None
-        
+
         算法复杂度:
             时间: O(b^d) 其中b是分支因子，d是深度
             空间: O(b^d)
@@ -242,7 +241,10 @@ class AStar:
         # 重置统计信息
         self.nodes_expanded = 0
         self.nodes_visited = 0
-        
+
+        # 记录每一步的执行状态（用于可视化调试）
+        self.steps = [] if record_steps else None
+
         # ===== 1. 初始化 =====
         # Open List: 优先队列，存储待扩展的节点
         # Python的heapq是最小堆，会按照节点的f值排序
@@ -276,14 +278,27 @@ class AStar:
         
         if verbose:
             print(f"  起点 f={start_node.f:.2f} (g=0, h={start_node.h:.2f})")
-        
+
+        # 记录初始状态
+        if record_steps:
+            self.steps.append({
+                'step': 0,
+                'current': None,
+                'open_list': [self.start],
+                'closed_set': set(),
+                'path': None,
+                'message': 'Initialization: Add start node to Open List'
+            })
+
         # ===== 2. 主搜索循环 =====
+        step_count = 0
         while open_list:
             # a. 取出f值最小的节点
             _, _, current = heapq.heappop(open_list)
             current_pos = current.pos
             self.nodes_visited += 1
-            
+            step_count += 1
+
             # b. 检查是否到达目标
             if current_pos == self.goal:
                 path = self.reconstruct_path(current)
@@ -304,7 +319,24 @@ class AStar:
             # d. 标记为已访问
             closed_set.add(current_pos)
             self.nodes_expanded += 1
-            
+
+            # 记录当前步骤状态
+            if record_steps:
+                # 获取当前open_list中的所有位置
+                open_positions = [node.pos for _, _, node in open_list]
+                # 从当前节点回溯路径
+                current_path = self.reconstruct_path(current)
+
+                self.steps.append({
+                    'step': step_count,
+                    'current': current_pos,
+                    'current_node': current,
+                    'open_list': open_positions.copy(),
+                    'closed_set': closed_set.copy(),
+                    'path': current_path,
+                    'message': f'Expand node {current_pos}, f={current.f:.2f}, g={current.g:.2f}, h={current.h:.2f}'
+                })
+
             # e. 扩展邻居节点
             for neighbor_pos, move_cost in self.get_neighbors(current_pos):
                 # 如果邻居已经访问过，跳过

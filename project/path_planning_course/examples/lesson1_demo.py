@@ -14,9 +14,9 @@ sys.path.append('..')
 import numpy as np
 import matplotlib.pyplot as plt
 from algorithms.a_star import AStar, create_grid_map
-from utils.visualization import plot_grid_map
+from utils.visualization import plot_grid_map, AStarStepVisualizer
 
-def main():
+def main(enable_debug_mode=False):
     print("="*60)
     print("Lesson 1: A* Path Planning Algorithm Demonstration")
     print("="*60)
@@ -47,11 +47,32 @@ def main():
     # ===== 3. Run A* Planning =====
     print(f"\nStep 3: Executing A* path planning...")
     planner = AStar(grid, start, goal, heuristic_weight=1.0)
-    path = planner.plan(verbose=True)
-    
+
+    # 如果启用调试模式，记录每一步
+    path = planner.plan(verbose=True, record_steps=enable_debug_mode)
+
     if path is None:
         print("\n✗ Planning failed!")
         return
+
+    # ===== 单步调试模式 =====
+    if enable_debug_mode:
+        print(f"\n{'='*60}")
+        print("启动交互式单步调试模式...")
+        print(f"{'='*60}")
+        print("\n控制说明:")
+        print("  ← 或 A : 后退一步")
+        print("  → 或 D : 前进一步")
+        print("  Home   : 回到第一步")
+        print("  End    : 跳到最后一步")
+        print(f"{'='*60}\n")
+
+        visualizer = AStarStepVisualizer(
+            planner,
+            title="A* Algorithm Step-by-Step Debug"
+        )
+        visualizer.show()
+        return  # 调试模式下不继续执行其他可视化
     
     # ===== 4. Analyze Results =====
     print(f"\nStep 4: Analyzing planning results...")
@@ -153,4 +174,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # 检查是否启用调试模式
+    # 运行方式: python lesson1_demo.py --debug 或 python lesson1_demo.py -d
+    import sys
+    enable_debug = '--debug' in sys.argv or '-d' in sys.argv
+
+    if enable_debug:
+        print("\n" + "="*60)
+        print("  🔍 交互式单步调试模式已启用")
+        print("="*60 + "\n")
+
+    main(enable_debug_mode=enable_debug)
